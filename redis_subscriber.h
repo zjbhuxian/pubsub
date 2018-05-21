@@ -1,5 +1,5 @@
-#ifndef REDIS_PUBLISH_SUBSCRIBE_CREDISSUBSCRIBER_H
-#define REDIS_PUBLISH_SUBSCRIBE_CREDISSUBSCRIBER_H
+#ifndef REDIS_SUBSCRIBER_H
+#define REDIS_SUBSCRIBER_H
 
 #include <stdlib.h>
 #include <hiredis/async.h>
@@ -9,18 +9,20 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <semaphore.h>
-#include <boost/functional.hpp>
+#include <boost/tr1/functional.hpp>
 
-class redis_subscriber {
+/**
+ * 封装 hiredis， 实现消息订阅 redis 功能
+ */
+class CRedisSubscriber {
 public:
-    typedef std::function<void(const char *, const char *, int)> NotifyMessageFn;    // 回调函数对象类型，当接收到消息后调用回调把消息发送出去
+    typedef std::tr1::function<void(const char *, const char *, int)> NotifyMessageFn;    // 回调函数对象类型，当接收到消息后调用回调把消息发送出去
 
-    redis_subscriber();
+    CRedisSubscriber();
 
-    ~redis_subscriber();
+    ~CRedisSubscriber();
 
     bool init(const NotifyMessageFn &fn);    // 传入回调对象
-
     bool uninit();
 
     bool connect();
@@ -63,5 +65,4 @@ private:
     NotifyMessageFn _notify_message_fn;
 };
 
-
-#endif //REDIS_PUBLISH_SUBSCRIBE_CREDISSUBSCRIBER_H
+#endif

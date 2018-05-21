@@ -6,11 +6,17 @@ void recieve_message(const char *channel_name,
            channel_name, message);
 }
 
+/**
+ * 实现消息的订阅
+ * @param argc
+ * @param argv
+ * @return
+ */
 int main(int argc, char *argv[]) {
-    redis_subscriber subscriber;
-    redis_subscriber::NotifyMessageFn fn =
-            bind(recieve_message, std::placeholders::_1,
-                 std::placeholders::_2, std::placeholders::_3);
+    CRedisSubscriber subscriber;
+    CRedisSubscriber::NotifyMessageFn fn =
+            bind(recieve_message, std::tr1::placeholders::_1,
+                 std::tr1::placeholders::_2, std::tr1::placeholders::_3);
 
     bool ret = subscriber.init(fn);
     if (!ret) {

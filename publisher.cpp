@@ -6,8 +6,8 @@
  * @param argv
  * @return
  */
-int main(int argc, char* argv[]) {
-    redis_publisher publisher;
+int main(int argc, char *argv[]) {
+    CRedisPublisher publisher;
 
     bool ret = publisher.init();
     if (!ret) {
@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
     }
 
     while (true) {
-        publisher.publish("test-channel", "Hello World!");
+        publisher.publish("test-channel", "Hello shiyanlou!");
         sleep(1);
     }
 
