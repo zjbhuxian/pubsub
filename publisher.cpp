@@ -7,22 +7,23 @@
  * @return
  */
 int main(int argc, char *argv[]) {
-    CRedisPublisher publisher;
+    RedisPublisher publisher;
 
     bool ret = publisher.init();
     if (!ret) {
-        printf("Init failed.\n");
+        std::cout << "Init failed." << std::endl;
         return 0;
     }
 
     ret = publisher.connect();
     if (!ret) {
-        printf("connect failed.");
+        std::cout << "connect failed." << std::endl;
         return 0;
     }
 
     while (true) {
-        publisher.publish("test-channel", "Hello shiyanlou!");
+        //设置频道名称，频道内容
+        publisher.publish("每日报道", "欢迎订阅每日报道的新闻!");
         sleep(1);
     }
 

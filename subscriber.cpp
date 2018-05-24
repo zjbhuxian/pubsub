@@ -2,7 +2,7 @@
 
 void recieve_message(const char *channel_name,
                      const char *message, int len) {
-    printf("Recieve message:\n    channel name: %s\n    message: %s\n",
+    printf("订阅信息:\n    频道名称: %s\n    来自频道的内容: %s\n",
            channel_name, message);
 }
 
@@ -13,24 +13,24 @@ void recieve_message(const char *channel_name,
  * @return
  */
 int main(int argc, char *argv[]) {
-    CRedisSubscriber subscriber;
-    CRedisSubscriber::NotifyMessageFn fn =
-            bind(recieve_message, std::tr1::placeholders::_1,
-                 std::tr1::placeholders::_2, std::tr1::placeholders::_3);
+    RedisSubscriber subscriber;
+    RedisSubscriber::NotifyMessageFn fn =
+            bind(recieve_message, std::placeholders::_1,
+                 std::placeholders::_2, std::placeholders::_3);
 
     bool ret = subscriber.init(fn);
     if (!ret) {
-        printf("Init failed.\n");
+        std::cout << "Init failed." << std::endl;
         return 0;
     }
 
     ret = subscriber.connect();
     if (!ret) {
-        printf("Connect failed.\n");
+        std::cout << "connect failed." << std::endl;
         return 0;
     }
 
-    subscriber.subscribe("test-channel");
+    subscriber.subscribe("每日报道");
 
     while (true) {
         sleep(1);

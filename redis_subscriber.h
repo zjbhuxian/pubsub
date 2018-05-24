@@ -9,18 +9,19 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <semaphore.h>
-#include <boost/tr1/functional.hpp>
+#include <functional>
+#include <iostream>
 
 /**
  * 封装 hiredis， 实现消息订阅 redis 功能
  */
-class CRedisSubscriber {
+class RedisSubscriber {
 public:
-    typedef std::tr1::function<void(const char *, const char *, int)> NotifyMessageFn;    // 回调函数对象类型，当接收到消息后调用回调把消息发送出去
+    typedef std::function<void(const char *, const char *, int)> NotifyMessageFn;    // 回调函数对象类型，当接收到消息后调用回调把消息发送出去
 
-    CRedisSubscriber();
+    RedisSubscriber();
 
-    ~CRedisSubscriber();
+    ~RedisSubscriber();
 
     bool init(const NotifyMessageFn &fn);    // 传入回调对象
     bool uninit();
@@ -35,16 +36,13 @@ public:
 private:
     // 下面三个回调函数供redis服务调用
     // 连接回调
-    static void connect_callback(const redisAsyncContext *redis_context,
-                                 int status);
+    static void connect_callback(const redisAsyncContext *redis_context, int status);
 
     // 断开连接的回调
-    static void disconnect_callback(const redisAsyncContext *redis_context,
-                                    int status);
+    static void disconnect_callback(const redisAsyncContext *redis_context, int status);
 
     // 执行命令回调
-    static void command_callback(redisAsyncContext *redis_context,
-                                 void *reply, void *privdata);
+    static void command_callback(redisAsyncContext *redis_context, void *reply, void *privdata);
 
     // 事件分发线程函数
     static void *event_thread(void *data);
