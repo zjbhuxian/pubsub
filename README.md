@@ -1,33 +1,19 @@
-# redis_publish_subscribe
-简介
+# pubsub
+### 项目介绍
 
-C++操作 redis 实现异步订阅和发布
+pubsub是一个基于C++操作 redis 实现异步订阅和发布的项目，它是一个学习性质的Demo项目，用于实现发布/订阅消息范式 。
 
-功能
+### 运行效果
 
-实现发布/订阅消息范式 ，消息的发送者（发布者）不是计划发送其消息给特定的接收者（订阅者）。而是发布的消息分为不同的类别，而不需要知道什么样的订阅者订阅。订阅者对一个或多个类别表达兴趣，于是只接收感兴趣的消息，而不需要知道什么样的发布者发布的消息。这种发布者和订阅者的[解耦](https://zh.wikipedia.org/wiki/%E8%80%A6%E5%90%88)可以允许更好的[可扩展性](https://zh.wikipedia.org/wiki/%E5%8F%AF%E6%89%A9%E5%B1%95%E6%80%A7)和更为动态的[网络拓扑](https://zh.wikipedia.org/wiki/%E7%BD%91%E7%BB%9C%E6%8B%93%E6%89%91)。(引自wikipedia)
+![https://github.com/LinHaoo/resources/blob/master/pubsub.png]()
 
-运行效果
+订阅客户端接受来自发布服务端的的内容示意图
 
- ![](C:\Users\hao\Desktop\订阅者.png)
+### 运行环境
 
+ubuntu，redis，hiredis ，libevent
 
-
-环境配置
-
-Linux
-
-Redis[数据库](https://baike.baidu.com/item/%E6%95%B0%E6%8D%AE%E5%BA%93) 
-
-hiredis 库
-
-libevent 库
-
-C++11
-
-
-
-快速教程 
+### 快速教程 
 
 1.下载源码
 
@@ -40,6 +26,28 @@ C++11
 5.运行publisher发布者程序
 
 6.运行subscriber订阅者程序
+
+### 项目结构
+
+pubsub
+
+​	--publisher.cpp		//实现发布消息的发布主程序
+
+​	--redis_publisher.cpp	
+
+​	--redis_publisher.h	//封装了 hiredis，实现消息发布给 redis的功能
+
+​	--subscriber.cpp		//实现订阅消息的订阅主程序
+
+​	--redis_subscriber.cpp
+
+​	---redis_subscriber.h	//封装 hiredis， 实现消息订阅 redis 功能
+
+### 版权信息 
+
+暂无
+
+
 
 
 
