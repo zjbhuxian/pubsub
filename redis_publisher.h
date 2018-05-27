@@ -46,13 +46,13 @@ private:
 
 private:
 	// libevent事件对象
-	event_base *_event_base;
+	event_base *eventBase;
 	// 事件线程ID
-	pthread_t _event_thread;
+	pthread_t eventThread;
 	// 事件线程的信号量
-	sem_t _event_sem;
+	sem_t eventSem;
 	// hiredis异步对象
-	redisAsyncContext *_redis_context;
+	redisAsyncContext *context;
 };
 
 #endif

@@ -3,8 +3,8 @@
 #include <string.h>
 #include "redis_subscriber.h"
 
-RedisSubscriber::RedisSubscriber() : _event_base(0), _event_thread(0),
-                                     _redis_context(0) {
+RedisSubscriber::RedisSubscriber() : eventBase(0), eventThread(0),
+                                     context(0) {
 }
 
 RedisSubscriber::~RedisSubscriber() {
@@ -12,15 +12,15 @@ RedisSubscriber::~RedisSubscriber() {
 
 bool RedisSubscriber::init(const NotifyMessageFn &fn) {
 	// initialize the event
-	_notify_message_fn = fn;
-	_event_base = event_base_new();    // 创建libevent对象
-	if (NULL == _event_base) {
+	notifyMessageFn = fn;
+	eventBase = event_base_new();    // 创建libevent对象
+	if (NULL == eventBase) {
 		std::cout << "Create redis event failed." << std::endl;
 		return false;
 	}
 
-	memset(&_event_sem, 0, sizeof(_event_sem));
-	int ret = sem_init(&_event_sem, 0, 0);
+	memset(&eventSem, 0, sizeof(eventSem));
+	int ret = sem_init(&eventSem, 0, 0);
 	if (ret != 0) {
 		std::cout << "Init sem failed." << std::endl;
 		return false;
@@ -30,31 +30,31 @@ bool RedisSubscriber::init(const NotifyMessageFn &fn) {
 }
 
 bool RedisSubscriber::uninit() {
-	_event_base = NULL;
+	eventBase = NULL;
 
-	sem_destroy(&_event_sem);
+	sem_destroy(&eventSem);
 	return true;
 }
 
 bool RedisSubscriber::connect() {
 	// connect redis
-	_redis_context = redisAsyncConnect("127.0.0.1", 6379);    // 异步连接到redis服务器上，使用默认端口
-	if (NULL == _redis_context) {
+	context = redisAsyncConnect("127.0.0.1", 6379);    // 异步连接到redis服务器上，使用默认端口
+	if (NULL == context) {
 		std::cout << "Connect redis failed." << std::endl;
 		return false;
 	}
 
-	if (_redis_context->err) {
+	if (context->err) {
 		// 输出错误信息
-		std::cout << "Connect redis error: " << _redis_context->err << _redis_context->errstr << std::endl;
+		std::cout << "Connect redis error: " << context->err << context->errstr << std::endl;
 		return false;
 	}
 
 	// attach the event
-	redisLibeventAttach(_redis_context, _event_base);    // 将事件绑定到redis context上，使设置给redis的回调跟事件关联
+	redisLibeventAttach(context, eventBase);    // 将事件绑定到redis context上，使设置给redis的回调跟事件关联
 
 	// 创建事件处理线程
-	int ret = pthread_create(&_event_thread, 0, &RedisSubscriber::event_thread, this);
+	int ret = pthread_create(&eventThread, 0, &RedisSubscriber::event_thread, this);
 	if (ret != 0) {
 		std::cout << "Create event thread failed." << std::endl;
 		disconnect();
@@ -62,30 +62,30 @@ bool RedisSubscriber::connect() {
 	}
 
 	// 设置连接回调，当异步调用连接后，服务器处理连接请求结束后调用，通知调用者连接的状态
-	redisAsyncSetConnectCallback(_redis_context,
+	redisAsyncSetConnectCallback(context,
 	                             &RedisSubscriber::connect_callback);
 
 	// 设置断开连接回调，当服务器断开连接后，通知调用者连接断开，调用者可以利用这个函数实现重连
-	redisAsyncSetDisconnectCallback(_redis_context,
+	redisAsyncSetDisconnectCallback(context,
 	                                &RedisSubscriber::disconnect_callback);
 
 	// 启动事件线程
-	sem_post(&_event_sem);
+	sem_post(&eventSem);
 	return true;
 }
 
 bool RedisSubscriber::disconnect() {
-	if (_redis_context) {
-		redisAsyncDisconnect(_redis_context);
-		redisAsyncFree(_redis_context);
-		_redis_context = NULL;
+	if (context) {
+		redisAsyncDisconnect(context);
+		redisAsyncFree(context);
+		context = NULL;
 	}
 
 	return true;
 }
 
 bool RedisSubscriber::subscribe(const std::string &channel_name) {
-	int ret = redisAsyncCommand(_redis_context,
+	int ret = redisAsyncCommand(context,
 	                            &RedisSubscriber::command_callback, this, "SUBSCRIBE %s",
 	                            channel_name.c_str());
 	if (REDIS_ERR == ret) {
@@ -129,8 +129,8 @@ void RedisSubscriber::command_callback(redisAsyncContext *redis_context,
 	if (redis_reply->type == REDIS_REPLY_ARRAY &&
 	    redis_reply->elements == 3) {
 		// 调用函数对象把消息通知给外层
-		self_this->_notify_message_fn(redis_reply->element[1]->str,
-		                              redis_reply->element[2]->str, redis_reply->element[2]->len);
+		self_this->notifyMessageFn(redis_reply->element[1]->str,
+		                           redis_reply->element[2]->str, redis_reply->element[2]->len);
 	}
 }
 
@@ -146,10 +146,10 @@ void *RedisSubscriber::event_thread(void *data) {
 }
 
 void *RedisSubscriber::event_proc() {
-	sem_wait(&_event_sem);
+	sem_wait(&eventSem);
 
 	// 开启事件分发，event_base_dispatch会阻塞
-	event_base_dispatch(_event_base);
+	event_base_dispatch(eventBase);
 
 	return NULL;
 }
